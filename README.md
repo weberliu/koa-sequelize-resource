@@ -1,1 +1,2 @@
 # koa-sequelize-resource
+
