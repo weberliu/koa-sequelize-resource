@@ -4,6 +4,8 @@ import _ from 'lodash'
 import logger from 'debug'
 import Sequelize from 'sequelize'
 
+import ContentRange from './content-range'
+
 const debug = logger('koa-sequelize-resource')
 
 export default class Resouce
@@ -102,10 +104,23 @@ export default class Resouce
     let that = this;
 
     return async (ctx, next) => {
-      debug('Read collection')
-      ctx.state.instances = await that.model.findAll(_.merge(ctx.state.where, options))
+      const range = new ContentRange(ctx)
+      
+      const pagination = range.parse()
+      
+      if (!_.isEmpty(pagination)) {
+        ctx.state.instanceCount = await that.model.count(options)
+        options = {...pagination, ...options}
+      }
+
+      ctx.state.instances = await that.model.findAll(options)
+      
+      debug('Read collection', options)
       
       await next()
+
+      if (!_.isEmpty(pagination)) ctx.set('content-range', range.format())
+      
       ctx.status = 200;
       ctx.body = ctx.state.instances
     }

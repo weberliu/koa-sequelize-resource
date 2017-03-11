@@ -1,7 +1,9 @@
 # koa-sequelize-resource
 
-[![Travis branch][travis-image]][travis-url]
 [![NPM version][npm-image]][npm-url]
+[![build status][travis-image]][travis-url]
+[![Test coverage][coveralls-image]][coveralls-url]
+[![npm download][download-image]][download-url]
 
 RESTful API based on Sequelize and support ES2015.
 
@@ -36,4 +38,20 @@ app.use(async (ctx, next) => {
 const server = http.createServer(app.callback())
 app.listen(3000)
 
+```
+
+## Query
+
+### Pagination
+
+Request head:
+
+```
+content-range: 'items 10-30/20'
+```
+
+Response:
+
+```
+content-range: 'items 10-25/20'
 ```
