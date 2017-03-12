@@ -10,8 +10,6 @@ import logger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import 'should'
-
 import Resource from '../lib/resource'
 import models from './models/'
 

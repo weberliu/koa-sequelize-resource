@@ -100,22 +100,35 @@ export default class Resouce
     };
   }
 
-  readAll(options) {
+  readAll(options = {}) {
     let that = this;
 
     return async (ctx, next) => {
-      const range = new ContentRange(ctx)
+      let query = {}
+
+      // parse query 
+      if (!_.isEmpty(ctx.request.query)) {
+        const originalQuery = _.clone(ctx.request.query)
+
+        let where = that.model.where && _.isFunction(that.model.where)
+                    ? that.model.where(originalQuery)
+                    : originalQuery
+
+        query = _.merge(query, { where: where })
+      }
       
+      // parse pagination header
+      const range = new ContentRange(ctx)
       const pagination = range.parse()
       
       if (!_.isEmpty(pagination)) {
-        ctx.state.instanceCount = await that.model.count(options)
-        options = {...pagination, ...options}
+        ctx.state.instanceCount = options.disableCount ? null : await that.model.count(query)
+        query = _.merge(query, pagination)
       }
-
-      ctx.state.instances = await that.model.findAll(options)
       
-      debug('Read collection', options)
+      debug('Read collection:', query)
+
+      ctx.state.instances = await that.model.findAll(query)
       
       await next()
 

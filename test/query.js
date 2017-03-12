@@ -13,7 +13,7 @@ import models from './models/'
 
 const debug = logger('koa-sequelize-resource:test:query')
 
-describe ('query routers', function () {
+describe ('query models', function () {
 
   let server
 
@@ -34,10 +34,10 @@ describe ('query routers', function () {
     server = request(http.createServer(app.callback()))
   })
 
-  describe('QUERY', () => {
-    it('content range', done => {
+  describe('RANGE', () => {
+    it('should be 200 and body length equal 2', done => {
       server
-        .get('/user?name=n')
+        .get('/user')
         .set('content-range', 'items 1-2/2')
         .expect('content-range', 'items 1-2/4')
         .expect(200)
@@ -49,18 +49,20 @@ describe ('query routers', function () {
           done()
         })
     })
+  })
 
-    // it('query string', done => {
-    //   server
-    //     .get('/user?name=n')
-    //     .expect(200)
-    //     .end((err, res) => {
-    //       if (err) throw done(err)
-    //       let body = res.body
-    //       debug(body)
-    //       // assert(body.length === 2)
-    //       done()
-    //     })
-    // })
+  describe('QUERY', () => {  
+    it('should be 200 and body length is 3', done => {
+      server
+        .get('/user?name=n')
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw done(err)
+          let body = res.body
+          debug(body)
+          assert(body.length === 3)
+          done()
+        })
+    })
   })
 })
