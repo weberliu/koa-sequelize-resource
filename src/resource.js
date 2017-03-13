@@ -110,11 +110,21 @@ export default class Resouce
       if (!_.isEmpty(ctx.request.query)) {
         const originalQuery = _.clone(ctx.request.query)
 
+        if (_.has(originalQuery, 'orderby')) {
+          const order = originalQuery.orderby.substr(0, 1) == '-'
+                        ? originalQuery.orderby.substr(1) + ' DESC'
+                        : originalQuery.orderby
+
+          delete originalQuery.orderby
+
+          query = _.merge(query, { order: order })
+        }
+
         let where = that.model.where && _.isFunction(that.model.where)
                     ? that.model.where(originalQuery)
                     : originalQuery
 
-        query = _.merge(query, { where: where })
+        if (!_.isEmpty(where)) query = _.merge(query, { where: where })
       }
       
       // parse pagination header
@@ -125,7 +135,7 @@ export default class Resouce
         ctx.state.instanceCount = options.disableCount ? null : await that.model.count(query)
         query = _.merge(query, pagination)
       }
-      
+
       debug('Read collection:', query)
 
       ctx.state.instances = await that.model.findAll(query)

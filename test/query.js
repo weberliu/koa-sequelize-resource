@@ -65,4 +65,30 @@ describe ('query models', function () {
         })
     })
   })
+
+  describe('ORDER', () => {  
+    it('should be 200 and first user is Tom', done => {
+      server
+        .get('/user?orderby=-name')
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw done(err)
+          let body = res.body
+          debug(body)
+          assert(body[0].name === 'Tom')
+          done()
+        })
+    })
+
+    it('should be 200 and first user is Andy', done => {
+      server
+        .get('/user?orderby=name')
+        .end((err, res) => {
+          if (err) throw done(err)
+          let body = res.body
+          assert(body[0].name === 'Andy')
+          done()
+        })
+    })
+  })
 })
