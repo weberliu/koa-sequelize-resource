@@ -5,9 +5,8 @@ import _ from 'lodash'
 const log = debug('koa-sequelize-resource')
 
 export default class pagination {
-  constructor(ctx) {
-    this.ctx = ctx
-    this.range = contentRange.parse(ctx.header['content-range'])
+  constructor(header) {
+    this.range = contentRange.parse(header)
   }
   
   parse () {
@@ -20,7 +19,7 @@ export default class pagination {
     return { offset: range.first, limit: range.length, }
   }
 
-  format () {
+  format (length, total) {
     const range = this.range
 
     if (_.isEmpty(range)) return
@@ -28,8 +27,8 @@ export default class pagination {
     return contentRange.format({
       unit: range.unit,
       first: range.first,
-      limit: this.ctx.state.instances.length || 0,
-      length: this.ctx.state.instanceCount || this.ctx.state.instances.length || 0,
+      limit: range.first + (length || 0),
+      length: total || length || 0,
     })
   }
 } 

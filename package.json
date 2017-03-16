@@ -7,8 +7,7 @@
     "lib"
   ],
   "scripts": {
-    "nvm": "~/.nvm/nvm-exec which node | xargs -J % ln -sf % ./.nvm-node && chmod +x ./.nvm-node",
-    "test": "export NODE_ENV=test; export DEBUG=koa-sequelize-resource; mocha -u bdd --compilers js:babel-core/register",
+    "test": "export NODE_ENV=test; export DEBUG=koa-sequelize-resource:router; mocha -u bdd --compilers js:babel-core/register",
     "build": "babel src/ --out-dir lib/ --retain-lines"
   },
   "repository": {
@@ -20,6 +19,7 @@
     "debug": "^2.2.0",
     "install": "^0.8.7",
     "lodash": "^4.15.0",
+    "inflection": "^1.12.0",
     "npm": "^4.4.1"
   },
   "devDependencies": {

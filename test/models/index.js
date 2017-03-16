@@ -59,6 +59,7 @@ const loadMockData = () => {
         , model = models[key]
 
       if (data && Array.isArray(data)) {
+        debug('create ' + model)
         promises.push(model.bulkCreate(data))
       }
     })

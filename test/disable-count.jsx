@@ -2,30 +2,28 @@
 
 import http from 'http'
 import Koa from 'koa'
-import Router from 'koa-router'
 import request from 'supertest'
-import logger from 'debug'
+import debug from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import Resource from '../src/resource'
+import Router from '../src/'
 import models from './models/'
 
-const debug = logger('koa-sequelize-resource:test:disable-count')
+const router = Router(models)
+const log = debug('koa-sequelize-resource:test:disable-count')
 
-describe ('diable count', function () {
+describe ('disable count', function () {
 
   let server
 
   before (function () {
     let app = new Koa()
-      , user = new Resource(models.User)
-      , router = Router()
     
-    router.get('/user', user.readAll({
-      disableCount: true,
+    router.define('user', (resources) => ({
+      index: resources.User.index({disableCount: true})
     }))
-
+    
     app
       .use(async (ctx, next) => {
         await router.routes()(ctx, next)

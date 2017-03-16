@@ -2,36 +2,25 @@
 
 import http from 'http'
 import Koa from 'koa'
-import Router from 'koa-router'
 import BodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import request from 'supertest'
-import logger from 'debug'
+import debug from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import Resource from '../lib/resource'
 import models from './models/'
+import router from './mock/routers'
 
-const debug = logger('koa-sequelize-resource:test:models')
+const log = debug('koa-sequelize-resource:test:models')
 
-describe ('model routers', function () {
+describe ('models', function () {
 
   let server
 
   before (function () {
-
-    
     let app = new Koa()
-      , user = new Resource(models.User)
-      , router = Router()
       , bodyparser = BodyParser()
-    
-    router.get('/user', user.readAll())
-    router.get('/user/:id', user.readOne())
-    router.post('/user', user.create())
-    router.patch('/user/:id', user.update())
-    router.delete('/user/:id', user.destroy())
 
     app
       .use(convert(bodyparser))
@@ -45,23 +34,22 @@ describe ('model routers', function () {
   beforeEach (function (done) {
 
     models.loadMockData().then(() => {
-      debug('reset db done')
+      log('reset db done')
       done()
     }).catch(done)  
 
   })
 
   describe('GET', () => {
-    it('read all should 200 and is array', done => {
-      debug('get collection')
+    it('should be 200 and length is 4', done => {
       server
         .get('/user')
         .expect(200)
         .end((err, res) => {
           if (err) throw done(err)
           let body = res.body
-          assert(Array.isArray(body))
-          assert(body.length === 4)
+          log(body)
+          assert(body.length == 4)
           done()
         })
     })

@@ -8,10 +8,9 @@ import logger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import Resource from '../src/resource'
-import models from './models/'
+import router from './mock/routers'
 
-const debug = logger('koa-sequelize-resource:test:query')
+const log = logger('koa-sequelize-resource:test:query')
 
 describe ('query models', function () {
 
@@ -19,12 +18,6 @@ describe ('query models', function () {
 
   before (function () {
     let app = new Koa()
-      , user = new Resource(models.User)
-      , router = Router()
-    
-    router.get('/user', async (ctx, next) => {
-      await next()
-    }, user.readAll())
 
     app
       .use(async (ctx, next) => {
@@ -44,7 +37,7 @@ describe ('query models', function () {
         .end((err, res) => {
           if (err) throw done(err)
           let body = res.body
-          debug(res.header)
+          log(res.header)
           assert(body.length === 2)
           done()
         })
@@ -59,7 +52,7 @@ describe ('query models', function () {
         .end((err, res) => {
           if (err) throw done(err)
           let body = res.body
-          debug(body)
+          log(body)
           assert(body.length === 3)
           done()
         })
@@ -74,7 +67,7 @@ describe ('query models', function () {
         .end((err, res) => {
           if (err) throw done(err)
           let body = res.body
-          debug(body)
+          log(body)
           assert(body[0].name === 'Tom')
           done()
         })

@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 import {Profile} from './profile'
 
-const log = debug('koa-sequelize-resource:test:user')
+const log = debug('koa-sequelize-resource:models:user')
 
 module.exports = function(sequelize, DataTypes) {
   var User = sequelize.define(
@@ -47,8 +47,17 @@ module.exports = function(sequelize, DataTypes) {
           return query
         },
         associate: function(models) {
-          console.log(models)
           // associations can be defined here
+          models.User.hasOne(models.Profile, {
+            // as: 'profile',
+            constraints: false,
+            foreignKey: 'userId'
+          })
+
+          models.User.hasMany(models.Post, {
+            constraints: false,
+            foreignKey: 'userId',
+          })
         }
       }
     })
