@@ -1,37 +1,39 @@
 # koa-sequelize-resource
 
-[![NPM version][npm-image]][npm-url]
-[![build status][travis-image]][travis-url]
-[![Test coverage][coveralls-image]][coveralls-url]
-[![npm download][download-image]][download-url]
 
 RESTful API based on Sequelize and support ES2015.
 
 ## Installation
 
 ```
-npm install koa-sequelize-resource
+npm install koa-sequelize-resource -S
 ```
 
 ## Usage
 
 ```
 import Koa from 'koa'
-import Router from 'koa-router'
-import Resource from 'koa-sequelize-resource'
-import { User } from './models/user'
+import Router from 'koa-sequelize-resource'
+import models from './models/'
 
 const app = new Koa()
-const router = Router()
-const user = new Resource(models.User)
-    
-router.get('/user', user.readAll())
-router.get('/user/:id', user.readOne())
-router.post('/user', user.create())
-router.patch('/user/:id', user.update())
-router.delete('/user/:id', user.destroy())
+const router = Router(models)
 
-app.use(async (ctx, next) => {
+router
+  .crud('/user', (resources) => resources.User)
+  .crud('user/:uid/posts', (resources) => resources.User.hasOne('Posts', 'uid'))
+  // or 
+  .define('user/:uid/posts', (resources) => ({
+    index: resources.User.hasOne('Posts', 'uid').index(),
+    create: resources.User.hasOne('Posts', 'uid').create(),
+  }))
+  .define('user/:uid/posts/:id', (resources) => ({
+    update: resources.User.hasOne('Posts', 'uid').update(),
+    destroy: resources.User.hasOne('Posts', 'uid').destroy(),
+  }))
+    
+app
+  .use(async (ctx, next) => {
     await router.routes()(ctx, next)
   })
 
@@ -40,18 +42,58 @@ app.listen(3000)
 
 ```
 
-## Query
+## Basic request
 
 ### Pagination
 
-Request head:
-
+* Request head:
 ```
 content-range: 'items 10-30/20'
 ```
-
-Response:
+* Response:
 
 ```
 content-range: 'items 10-25/20'
+```
+* Sometimes, we do not wish calculate the records count:
+```
+router.define('orders', resources => resources.orders.index({ disableCount: true })
+```
+
+
+### Order by
+
+* Request: 
+```
+/users?orderby=-username
+/users?orderby=email
+```
+* Response:
+```
+[
+    { username: 'Bill', email: 'bill@who.com' },
+    { username: 'Anna', email: 'anna@who.com' },
+]
+[
+    { username: 'Anna', email: 'anna@who.com' },
+    { username: 'Bill', email: 'bill@who.com' },
+]
+```
+## Middlewares 
+
+```
+router
+  .crud('/user', someMiddlewares, resources => resources.user)
+  .define('/user/:uid/posts', someMiddlewares, resources => ({
+    ...
+  }))
+```
+
+
+## Running Test
+
+
+
+```
+npm test
 ```
