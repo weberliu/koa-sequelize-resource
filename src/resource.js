@@ -3,16 +3,20 @@
 import _ from 'lodash'
 import debug from 'debug'
 import Sequelize from 'sequelize'
-import inflection from 'inflection'
 
 import ContentRange from './content-range'
 
-const log = debug('koa-sequelize-resource:router')
+const log = debug('koa-sequelize-resource:resources')
 
 export default class Resource
 {
   constructor(model, options) {
-    this.model = model;
+    this.model = model
+
+    if (_.isString(options)) {
+      options = { idParam: options }
+    }
+
     this.options = {
       idParam: 'id', 
       idColumn: 'id', 
@@ -20,7 +24,7 @@ export default class Resource
     }
   }
 
-  _handleError(err, ctx) {
+  _errorHandler(err, ctx) {
     const e = _.cloneDeep(err)
 
     if (e.sql) {
@@ -38,12 +42,10 @@ export default class Resource
           e.statusCode = 409
           break
         default:
-          throw err
-          throw e
+          e.statusCode = 500
       }
     } else {
-      e.statusCode = 400
-      throw err
+      e.statusCode = 500
     }
 
     ctx.status = e.statusCode
@@ -93,7 +95,7 @@ export default class Resource
     return async (ctx, next) => {
       await that.model.create(ctx.request.body)
         .then(res => that._createdHandler(res, ctx, next))
-        .catch(err => that._handleError(err, ctx)) 
+        .catch(err => that._errorHandler(err, ctx)) 
     }
   }
 
@@ -110,7 +112,7 @@ export default class Resource
 
       await instance.update(ctx.request.body, options)
         .then(res => that._updatedHandler(res, ctx, next))
-        .catch(err => that._handleError(err, ctx))
+        .catch(err => that._errorHandler(err, ctx))
     };
   }
 
@@ -118,7 +120,7 @@ export default class Resource
     let that = this;
 
     return async (ctx, next) => {
-      const instance = await that._getEntity(ctx, [])
+      const instance = ctx.state.instance || await that._getEntity(ctx, [])
 
       if (instance === null) {
         ctx.status = 204
@@ -225,153 +227,17 @@ export default class Resource
     return this.readOne(include)
   }
 
-  hasOne(name, idParam = 'id') {
+  hasOne(name, parentOptions, childOptions) {
+    const AssociationResource = require('./association-resource')
     const association = this.model.associations[name]
 
     if (association === undefined) {
       throw new Error(`Cannot found the associations named "${name}".`)
     }
 
-    const resource = new ChildResource(this.model, association, { idParam: idParam })
+    const resource = new AssociationResource(this.model, association, parentOptions, childOptions)
     
     return resource
   }
-}
 
-class ChildResource extends Resource {
-  constructor(parent, association, options) {
-    super(association.target)
-    this.alias = association.as
-    this.associationType = association.associationType
-    this._isMany = this.associationType == 'HasMany' || this.associationType == 'BelongsToMany'
-    this.parent = new Resource(parent, options)
-    this.setMethod = (!this._isMany)
-                    ? 'set' + inflection.capitalize(this.alias)
-                    : 'set' + inflection.capitalize(inflection.pluralize(this.alias))
-    this.getMethod = (!this._isMany)
-                    ? 'get' + inflection.capitalize(this.alias)
-                    : 'get' + inflection.capitalize(inflection.pluralize(this.alias))                    
-  }
-
-  getParentInstance () {
-    const that = this
-    return async (ctx, next) => {
-      if (!ctx.state.instance) {
-        ctx.status = 204
-        return true
-      } else {
-        ctx.state.parent = ctx.state.instance
-
-        if (that._isMany) {
-          ctx.state.collection = ctx.state.parent[that.getMethod]
-        } 
-
-        await next()
-      }
-    }
-  }
-
-  index (options = {}) {
-    const that = this
-    
-    return [
-      that.parent.getEntity(),
-      that.getParentInstance(),
-
-      async (ctx, next) => {
-        const range = new ContentRange(ctx.header['content-range'])
-        const pagination = range.parse()
-        const query = that._buildQuery(ctx)
-
-        log('Association query: ', query)
-
-        ctx.state.instances = await ctx.state.parent[that.getMethod](_.merge({}, query, pagination))
-        
-        if (!_.isEmpty(pagination)) {
-          const countMethod = 'count' + inflection.capitalize(that.alias)
-          const count = options && options.disableCount 
-                        ? ctx.state.instances.length
-                        : await ctx.state.parent[countMethod](query)
-          
-          log(countMethod, count)
-          ctx.set('content-range', range.format(ctx.state.instances.length, count))
-        }
-        
-        await next()
-        
-        ctx.status = 200
-        ctx.body = ctx.state.instances
-      },
-    ]
-  }
-
-  show () {
-    return [
-      this.parent.getEntity({model: this.model, as: this.alias}),
-      this.getParentInstance(),
-
-      async (ctx, next) => {
-        ctx.state.instance = ctx.state.parent[this.alias]
-        
-        await next()
-        
-        ctx.status = 200
-        ctx.body = ctx.state.instance
-      },
-    ]
-  }
-
-  create () {
-    const that = this
-
-    return [
-      that.parent.getEntity({model: that.model, as: that.alias}),
-      that.getParentInstance(),
-
-      async (ctx, next) => {
-        const newInstance = that.model.build(ctx.request.body)
-        await ctx.state.parent[that.setMethod](newInstance)
-          .then(res => that._createdHandler(res, ctx, next))
-          .catch(err => that._handleError(err, ctx))
-      },
-    ]
-  }
-
-  update() {
-    const that = this
-
-    if (that._isMany) {
-      throw new Error(`This association type is ${that.associationType}, cannot invode update.`)
-    }
-
-    return [
-      that.parent.getEntity({model: that.model, as: that.alias}),
-      that.getParentInstance(),
-      
-      async (ctx, next) => {
-        const newInstance = that.model.build(ctx.request.body)
-        await ctx.state.parent[that.setMethod](newInstance)
-          .then(res => that._updatedHandler(res, ctx, next))
-          .catch(err => that._handleError(err, ctx))
-      },
-    ]
-  }
-
-  destroy() {
-    const that = this
-
-    return [
-      this.parent.getEntity({model: this.model, as: this.alias}),
-      this.getParentInstance(),
-      
-      async (ctx, next) => {
-        ctx.state.instance = ctx.state.parent[this.alias]
-        
-        await ctx.state.instance.destroy()
-        await next()
-        
-        ctx.status = 204
-      },
-    ]
-  }
 }

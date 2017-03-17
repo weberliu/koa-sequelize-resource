@@ -9,6 +9,7 @@ import assert from 'assert'
 import _ from 'lodash'
 
 import router from './mock/routers'
+import models from './models/'
 
 const log = logger('koa-sequelize-resource:test:query')
 
@@ -27,6 +28,15 @@ describe ('query models', function () {
     server = request(http.createServer(app.callback()))
   })
 
+  beforeEach (function (done) {
+
+    models.loadMockData().then(() => {
+      log('reset db done')
+      done()
+    }).catch(done)  
+
+  })
+
   describe('RANGE', () => {
     it('should be 200 and body length equal 2', done => {
       server
@@ -37,7 +47,6 @@ describe ('query models', function () {
         .end((err, res) => {
           if (err) throw done(err)
           let body = res.body
-          log(res.header)
           assert(body.length === 2)
           done()
         })

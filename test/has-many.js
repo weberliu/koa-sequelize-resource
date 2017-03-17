@@ -12,7 +12,7 @@ import _ from 'lodash'
 import models from './models/'
 import router from './mock/routers'
 
-const log = debug('koa-sequelize-resource:router')
+const log = debug('koa-sequelize-resource:test:hasmany')
 
 describe ('has many', function () {
 
@@ -81,119 +81,57 @@ describe ('has many', function () {
       })
     })
 
-    describe('all post by range', () => {
+    describe('all posts by range', () => {
       it('shoud 200 and length is 2', done => {
         server
           .get('/user/1/posts')
           .set('content-range', 'items 2-3/2')
           .expect('content-range', 'items 2-3/3')
-          .expect(200)
-          .end((err, res) => {
-            if (err) throw new Error(err)
-            log(res.body)
-            done()
-          })
+          .expect(200, done)
       })
     })
 
-    // it('read one should 200 and is object', done => {
-    //   server
-    //     .get('/user/1/profile')
-    //     .set('Accept', 'application/json')
-    //     .expect('Content-Type', /json/)
-    //     .expect(200)
-    //     .end((err, res) => {
-    //       if (err) throw new Error(err)
-    //       log(res.body)
-    //       assert(_.isObject(res.body))
-    //       done()
-    //     })
-    // })
-
-    // it('should 204', done => {
-    //   server
-    //     .get('/user/2/profile')
-    //     .expect(204, done)
-    // })
+    it('should 204', done => {
+      server
+        .get('/user/0/posts')
+        .expect(204, done)
+    })
   })
 
-  // describe('POST', () => {
-  //   it('create should be 201', done => {
-  //     server
-  //       .post('/user/2/profile')
-  //       .type('form')
-  //       .send({ avatar: 'http://avatar.com/tom.png'})
-  //       .set('Accept', 'application/json')
-  //       .expect('Content-Type', /json/)
-  //       .expect(201)
-  //       .end((err, res) => {
-  //         log(err, res)
-  //         if (err) throw done(err)
-  //         // assert(res.body.password !== '123456')
-  //         done()
-  //       })
-  //   })
+  describe('POST', () => {
+    it('create should be 201', done => {
+      server
+        .post('/user/4/posts')
+        .type('form')
+        .send({ thread: 'Post newest', content: 'Post content' })
+        .expect(201)
+        .end((err, res) => {
+          if (err) throw done(err)
+          done()
+        })
+    })
+  })
 
-  //   it('create should be 201', done => {
-  //     server
-  //       .post('/user/1/profile')
-  //       .type('form')
-  //       .send({ avatar: 'http://avatar.com/tom.png'})
-  //       .set('Accept', 'application/json')
-  //       .expect('Content-Type', /json/)
-  //       .expect(201)
-  //       .end((err, res) => {
-  //         log(err, res)
-  //         if (err) throw done(err)
-  //         // assert(res.body.password !== '123456')
-  //         done()
-  //       })
-  //   })
-    
-  // //   it('create duplicated name should be 409', done => {
-  // //     server
-  // //       .post('/user')
-  // //       .type('form')
-  // //       .send({ name: 'Donna', email: 'dona@who.com', password: '123456'})
-  // //       .expect(409, done)
-  // //   })
-  // })
+  describe('PATCH', () => {
+    it('update should be 200', done => {
+      server
+        .patch('/user/1/posts/1')
+        .type('form')
+        .send({ thread: 'Post updated'})
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw done(err)
+          assert(res.body.userId == 1)
+          done()
+        })
+    })
+  })
 
-  // describe('PATCH', () => {
-  //   it('update should be 200', done => {
-  //     server
-  //       .patch('/user/1/profile')
-  //       .type('form')
-  //       .send({ avatar: 'http://avatar.com/updated.png'})
-  //       .set('Accept', 'application/json')
-  //       .expect('Content-Type', /json/)
-  //       .expect(200, done)
-  //   })
-
-  //   it('update empty should be 200', done => {
-  //     server
-  //       .patch('/user/2/profile')
-  //       .type('form')
-  //       .send({ avatar: 'http://avatar.com/tom.png'})
-  //       .set('Accept', 'application/json')
-  //       .expect('Content-Type', /json/)
-  //       .expect(200, done)
-  //   })
-
-  //   it('update not found should be 204', done => {
-  //     server
-  //       .patch('/user/0/profile')
-  //       .type('form')
-  //       .send({ avatar: 'http://avatar.com/tom.png'})
-  //       .expect(204, done)
-  //   })
-  // })
-
-  // describe('DELETE', () => {
-  //   it('destroy should be 204', done => {
-  //     server
-  //       .delete('/user/1/profile')
-  //       .expect(204, done)
-  //   })
-  // })
+  describe('DELETE', () => {
+    it('destroy should be 204', done => {
+      server
+        .delete('/user/1/posts/1')
+        .expect(204, done)
+    })
+  })
 })

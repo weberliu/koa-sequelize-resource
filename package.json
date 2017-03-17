@@ -7,7 +7,7 @@
     "lib"
   ],
   "scripts": {
-    "test": "export NODE_ENV=test; export DEBUG=koa-sequelize-resource:router; mocha -u bdd --compilers js:babel-core/register",
+    "test": "export NODE_ENV=test; export DEBUG=; mocha -u bdd --compilers js:babel-core/register",
     "build": "babel src/ --out-dir lib/ --retain-lines"
   },
   "repository": {

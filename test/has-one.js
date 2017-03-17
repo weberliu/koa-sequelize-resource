@@ -12,7 +12,7 @@ import _ from 'lodash'
 import models from './models/'
 import router from './mock/routers'
 
-const log = debug('koa-sequelize-resource:router')
+const log = debug('koa-sequelize-resource:test:hasone')
 
 describe ('has one', function () {
 
@@ -72,7 +72,6 @@ describe ('has one', function () {
         .expect('Content-Type', /json/)
         .expect(201)
         .end((err, res) => {
-          log(err, res)
           if (err) throw done(err)
           // assert(res.body.password !== '123456')
           done()
@@ -88,20 +87,11 @@ describe ('has one', function () {
         .expect('Content-Type', /json/)
         .expect(201)
         .end((err, res) => {
-          log(err, res)
           if (err) throw done(err)
           // assert(res.body.password !== '123456')
           done()
         })
     })
-    
-  //   it('create duplicated name should be 409', done => {
-  //     server
-  //       .post('/user')
-  //       .type('form')
-  //       .send({ name: 'Donna', email: 'dona@who.com', password: '123456'})
-  //       .expect(409, done)
-  //   })
   })
 
   describe('PATCH', () => {

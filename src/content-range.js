@@ -2,7 +2,7 @@ import contentRange from 'content-range'
 import debug from 'debug'
 import _ from 'lodash'
 
-const log = debug('koa-sequelize-resource')
+const log = debug('koa-sequelize-resource:content-range')
 
 export default class pagination {
   constructor(header) {
@@ -27,7 +27,7 @@ export default class pagination {
     return contentRange.format({
       unit: range.unit,
       first: range.first,
-      limit: range.first + (length || 0),
+      limit: range.first + (length || 0) - 1,
       length: total || length || 0,
     })
   }

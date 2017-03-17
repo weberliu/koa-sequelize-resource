@@ -27,7 +27,7 @@ export default function ResourceRouter (models) {
    * 
    * @return Object
    */
-  router.define = (path, fn) => {
+  router.define = (url, fn) => {
     const routers = fn(resources)
 
     for (let k in routers) {
@@ -38,23 +38,31 @@ export default function ResourceRouter (models) {
         middlewares = [middlewares]
       }
 
-      if (path.substr(0, 1) !== '/') path = '/' + path
-      const paths = path.split('/').slice(1)
-      
-      let url
-      if (paths.length  == 1) {
-        url = _.includes(['show', 'update', 'destroy'], k) ? path + '/:id' : path
-      } else {
-        paths.forEach((p, i) => {
-          if (p.substr(0, 1) == ':') {
-            // TODO: get parent instance
-            // TODO: cannot be 'id'
-          }
-        })
+      if (!_.startsWith(url, '/')) url = '/' + url
 
-        url = path 
-      }
+      log('define routers: ', method, url)
+      router[method](url, ...middlewares)
+    }
+
+    return router
+  }
+
+  router.crud = (path, fn) => {
+    const resource = fn(resources)
+    const isAssociation = resource.constructor.name == 'AssociationResource'
+    
+    if (!_.startsWith(path, '/')) path = '/' + path
+
+    for (let k in methods) {
+      let url = (['show', 'update', 'destroy'].indexOf(k) > -1 && (!isAssociation || (isAssociation && resource.isMany))) 
+                  ? `${path}/:id`
+                  : path
       
+      let middlewares = resource[k]()
+
+      if (!_.isArray(middlewares)) middlewares = [middlewares]
+      
+      log('curd routers: ', methods[k], url)
       router[methods[k]](url, ...middlewares)
     }
 
