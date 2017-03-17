@@ -51,8 +51,8 @@ app.listen(3000)
 content-range: 'items 10-30/20'
 ```
 * Response:
-
 ```
+HTTP/1.1 206 Partial Content
 content-range: 'items 10-25/20'
 ```
 * Sometimes, we do not wish calculate the records count:
@@ -74,6 +74,8 @@ router.define('orders', resources => resources.orders.index({ disableCount: true
     { username: 'Bill', email: 'bill@who.com' },
     { username: 'Anna', email: 'anna@who.com' },
 ]
+
+
 [
     { username: 'Anna', email: 'anna@who.com' },
     { username: 'Bill', email: 'bill@who.com' },
