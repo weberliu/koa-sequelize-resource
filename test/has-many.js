@@ -87,7 +87,7 @@ describe ('has many', function () {
           .get('/user/1/posts')
           .set('content-range', 'items 2-3/2')
           .expect('content-range', 'items 2-3/3')
-          .expect(200, done)
+          .expect(206, done)
       })
     })
 

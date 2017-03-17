@@ -38,7 +38,7 @@ describe ('disable count', function () {
         .get('/user')
         .set('content-range', 'items 1-2/2')
         .expect('content-range', 'items 1-2/2')
-        .expect(200, done)
+        .expect(206, done)
     })
   })
 })

@@ -214,7 +214,7 @@ export default class Resource
 
       await next()
 
-      ctx.status = 200;
+      ctx.status = (_.isEmpty(pagination)) ? 200 : 206
       ctx.body = ctx.state.instances
     }
   }

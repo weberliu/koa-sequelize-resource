@@ -43,7 +43,7 @@ describe ('query models', function () {
         .get('/user')
         .set('content-range', 'items 1-2/2')
         .expect('content-range', 'items 1-2/4')
-        .expect(200)
+        .expect(206)
         .end((err, res) => {
           if (err) throw done(err)
           let body = res.body
