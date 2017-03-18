@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "test": "export NODE_ENV=test; export DEBUG=; mocha -u bdd --compilers js:babel-core/register",
-    "cover": "istanbul cover ./node_modules/.bin/_mocha -- 'test/*.js' --require babel-core/register ",
+    "cover": "export NODE_ENV=cover; istanbul cover ./node_modules/.bin/_mocha -- 'test/*.js' --require babel-core/register ",
     "build": "babel src/ --out-dir lib/ --retain-lines"
   },
   "repository": {

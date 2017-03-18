@@ -9,3 +9,5 @@ services:
   - mysql
 before_install:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS koa_sequelize_resource;'
+  - mysql -u root -e "CREATE USER 'tester'@'localhost' IDENTIFIED BY 'tester';"
+  - mysql -u root -e "GRANT ALL ON koa_sequelize_resource.* TO 'tester'@'localhost';"
