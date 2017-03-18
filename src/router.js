@@ -30,8 +30,10 @@ export default function ResourceRouter (models) {
    */
   router.define = function define(url) {
     let others = [].slice.call(arguments, 1, -1) 
+
     const fn = _.last(arguments)
     const routers = fn(resources)
+
 
     for (let k in routers) {
       const method = methods[k]
@@ -73,7 +75,6 @@ export default function ResourceRouter (models) {
       
       let mw = resource[k]()
       let middlewares = (_.isArray(mw)) ? others.concat(mw) : others.concat([mw])
-
 
       log('curd routers: ', methods[k], url)
       router[methods[k]](url, ...middlewares)
