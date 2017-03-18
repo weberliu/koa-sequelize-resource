@@ -64,6 +64,11 @@ export default function ResourceRouter (models) {
     let others = [].slice.call(arguments, 1, -1)
     const fn = _.last(arguments)
     const resource = fn(resources)
+
+    if (resource === undefined) {
+      throw new Error('Resouce is undefined')
+    }
+    
     const isAssociation = resource.constructor.name == 'AssociationResource'
     
     if (!_.startsWith(path, '/')) path = '/' + path

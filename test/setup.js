@@ -1,5 +1,3 @@
-'use strict';
-
 import models from './models/'
 
 before ('database setup', function (done) {

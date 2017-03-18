@@ -1,6 +1,4 @@
-'use strict';
-
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt-nodejs'
 import debug from 'debug'
 import _ from 'lodash'
 
@@ -21,6 +19,8 @@ module.exports = function(sequelize, DataTypes) {
     }, 
     
     {
+      freezeTableName: true,
+
       indexes: [{
         type: 'unique',
         /* Name is important for unique index */

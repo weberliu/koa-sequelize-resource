@@ -1,10 +1,9 @@
-'use strict';
-
 var fs        = require('fs');
 var path      = require('path');
 var Sequelize = require('sequelize');
-var basename  = path.basename(module.filename);
-var models    = {};
+var basename  = path.basename(module.filename)
+var _         = require('lodash')
+var models    = {}
 
 import logger from 'debug'
 
@@ -24,7 +23,9 @@ fs
     return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
   })
   .forEach(function(file) {
-    var model = sequelize['import'](path.join(__dirname, file));
+    var model = sequelize['import'](path.join(__dirname, file))
+    var k = _.lowerFirst(models.name)
+
     models[model.name] = model;
   });
 

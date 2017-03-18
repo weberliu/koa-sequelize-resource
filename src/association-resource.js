@@ -1,5 +1,3 @@
-'use strict';
-
 import _ from 'lodash'
 import debug from 'debug'
 import inflection from 'inflection'

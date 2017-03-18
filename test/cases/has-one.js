@@ -1,5 +1,3 @@
-'use strict';
-
 import http from 'http'
 import Koa from 'koa'
 import BodyParser from 'koa-bodyparser'
