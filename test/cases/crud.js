@@ -9,8 +9,8 @@ import debug from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import models from './models/'
-import router from './mock/association-routers'
+import models from '../models/'
+import router from '../mock/association-routers'
 
 const log = debug('koa-sequelize-resource:test:crud')
 

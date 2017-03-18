@@ -8,8 +8,8 @@ import logger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import router from './mock/routers'
-import models from './models/'
+import router from '../mock/routers'
+import models from '../models/'
 
 const log = logger('koa-sequelize-resource:test:query')
 

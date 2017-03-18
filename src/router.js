@@ -21,22 +21,27 @@ export default function ResourceRouter (models) {
   }
 
   const router = Router()
+
   /**
-   * @path  String            url path
-   * @fn    Array|Function    middlewares
+   * define a router
+   * @param  {string} url - url path
    * 
-   * @return Object
+   * @return {Router} this router
    */
-  router.define = (url, fn) => {
+  router.define = function define(url) {
+    let others = [].slice.call(arguments, 1, -1) 
+    const fn = _.last(arguments)
     const routers = fn(resources)
 
     for (let k in routers) {
       const method = methods[k]
-      let middlewares = routers[k]
 
-      if (!_.isArray(middlewares)) { 
-        middlewares = [middlewares]
+      if (!method) {
+        throw new Error(`"k" is not a resource method.`)
       }
+
+      let mw = routers[k]
+      let middlewares = (_.isArray(mw)) ? others.concat(mw) : others.concat([mw])
 
       if (!_.startsWith(url, '/')) url = '/' + url
 
@@ -47,7 +52,15 @@ export default function ResourceRouter (models) {
     return router
   }
 
-  router.crud = (path, fn) => {
+  /**
+   * define create, index, show, update, destroy methods bind to resouce
+   * 
+   * @param {string} path - url prefix
+   * @return {Router} this router
+   */
+  router.crud = function crud(path) {
+    let others = [].slice.call(arguments, 1, -1)
+    const fn = _.last(arguments)
     const resource = fn(resources)
     const isAssociation = resource.constructor.name == 'AssociationResource'
     
@@ -58,10 +71,10 @@ export default function ResourceRouter (models) {
                   ? `${path}/:id`
                   : path
       
-      let middlewares = resource[k]()
+      let mw = resource[k]()
+      let middlewares = (_.isArray(mw)) ? others.concat(mw) : others.concat([mw])
 
-      if (!_.isArray(middlewares)) middlewares = [middlewares]
-      
+
       log('curd routers: ', methods[k], url)
       router[methods[k]](url, ...middlewares)
     }
