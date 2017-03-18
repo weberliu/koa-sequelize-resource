@@ -5,3 +5,7 @@ node_js:
   - 7
 script: 
   - npm test
+services:
+  - mysql
+before_install:
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS koa_sequelize_resource;'
