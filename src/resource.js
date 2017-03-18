@@ -227,7 +227,7 @@ export default class Resource
     return this.readOne(include)
   }
 
-  hasOne(name, parentOptions, childOptions) {
+  relations(name, parentOptions, childOptions) {
     const AssociationResource = require('./association-resource')
     const association = this.model.associations[name]
 

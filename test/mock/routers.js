@@ -16,20 +16,20 @@ router
   }))
 
   .define('user/:uid/profile', (resources) => ({
-    show: resources.User.hasOne('Profile', 'uid').show(),
-    create: resources.User.hasOne('Profile', 'uid').create(),
-    update: resources.User.hasOne('Profile', 'uid').update(),
-    destroy: resources.User.hasOne('Profile', 'uid').destroy(),
+    show: resources.User.relations('Profile', 'uid').show(),
+    create: resources.User.relations('Profile', 'uid').create(),
+    update: resources.User.relations('Profile', 'uid').update(),
+    destroy: resources.User.relations('Profile', 'uid').destroy(),
   }))
 
   .define('user/:uid/posts', (resources) => ({
-    index: resources.User.hasOne('Posts', 'uid').index(),
-    create: resources.User.hasOne('Posts', 'uid').create(),
+    index: resources.User.relations('Posts', 'uid').index(),
+    create: resources.User.relations('Posts', 'uid').create(),
   }))
 
   .define('user/:uid/posts/:id', (resources) => ({
-    update: resources.User.hasOne('Posts', 'uid').update(),
-    destroy: resources.User.hasOne('Posts', 'uid').destroy(),
+    update: resources.User.relations('Posts', 'uid').update(),
+    destroy: resources.User.relations('Posts', 'uid').destroy(),
   }))
 
   .crud('/posts', (resources) => resources.Post)

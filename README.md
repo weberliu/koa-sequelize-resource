@@ -21,15 +21,15 @@ const router = Router(models)
 
 router
   .crud('/user', (resources) => resources.User)
-  .crud('user/:uid/posts', (resources) => resources.User.hasOne('Posts', 'uid'))
+  .crud('user/:uid/posts', (resources) => resources.User.relations('Posts', 'uid'))
   // or 
   .define('user/:uid/posts', (resources) => ({
-    index: resources.User.hasOne('Posts', 'uid').index(),
-    create: resources.User.hasOne('Posts', 'uid').create(),
+    index: resources.User.relations('Posts', 'uid').index(),
+    create: resources.User.relations('Posts', 'uid').create(),
   }))
   .define('user/:uid/posts/:id', (resources) => ({
-    update: resources.User.hasOne('Posts', 'uid').update(),
-    destroy: resources.User.hasOne('Posts', 'uid').destroy(),
+    update: resources.User.relations('Posts', 'uid').update(),
+    destroy: resources.User.relations('Posts', 'uid').destroy(),
   }))
     
 app
