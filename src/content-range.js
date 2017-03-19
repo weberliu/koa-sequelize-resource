@@ -19,16 +19,18 @@ export default class pagination {
     return { offset: range.first, limit: range.length, }
   }
 
-  format (length, total) {
+  format (length = 0, total) {
     const range = this.range
 
-    if (_.isEmpty(range)) return
-
-    return contentRange.format({
-      unit: range.unit,
-      first: range.first,
-      limit: range.first + (length || 0) - 1,
-      length: total || length || 0,
-    })
+    if (_.isEmpty(range)) {
+      return ''
+    } else {
+      return contentRange.format({
+        unit: range.unit,
+        first: range.first,
+        limit: range.first + length - 1,
+        length: total || length,
+      })
+    }
   }
 } 

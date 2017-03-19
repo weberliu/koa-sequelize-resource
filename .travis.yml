@@ -4,7 +4,9 @@ node_js:
   - 6
   - 7
 script: 
-  - npm test
+  - npm run travis
+env:
+  - NODE_ENV=travis
 services:
   - mysql
 before_install:
