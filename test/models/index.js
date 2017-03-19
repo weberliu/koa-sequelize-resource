@@ -6,13 +6,10 @@ var _         = require('lodash')
 var models    = {}
 
 import logger from 'debug'
-
+import config from '../config'
 const debug = logger('koa-sequelize-resource:test:database')
-const server = process.env.NODE_ENV == 'cover' 
-              ? "root:123456@localhost:32775"
-              : "tester@localhost"
 
-const sequelize = new Sequelize(`mysql://${server}/koa_sequelize_resource#UTF8`, {
+const sequelize = new Sequelize(`mysql://${config}/koa_sequelize_resource#UTF8`, {
   logging: debug,
   define: {
     timestamps: true,
