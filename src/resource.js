@@ -73,6 +73,45 @@ export default class Resource {
     ctx.body = ctx.state.instance
   }
 
+  _buildQuery (ctx) {
+    let query, sortedBy, pagination
+
+    if (!_.isEmpty(ctx.request.query)) {
+      const originalQuery = _.clone(ctx.request.query)
+
+      // parse ordering
+      if (_.has(originalQuery, 'sort')) {
+        sortedBy = originalQuery.sort
+          .split(',')
+          .map(f => (f.substr(0, 1) === '-' ? [f.substr(1), 'DESC'] : f))
+
+        debug('order by %o', sortedBy)
+        delete originalQuery.sort
+
+        query = _.merge(query, { order: sortedBy })
+      }
+
+      // parse pagination
+      if (_.has(originalQuery, 'limit')) {
+        const { limit, offset } = originalQuery
+        pagination = { limit: parseInt(limit, 10), offset: parseInt(offset, 10) || 0 }
+
+        query = _.merge(query, pagination)
+        delete originalQuery.limit
+        delete originalQuery.offset
+      }
+
+      // parse query string
+      let where = this.model.filter && _.isFunction(this.model.filter)
+        ? this.model.filter(originalQuery)
+        : originalQuery
+
+      if (!_.isEmpty(where)) query = _.merge(query, { where })
+    }
+
+    return { query, sortedBy, pagination }
+  }
+
   getEntity (include) {
     let that = this
     return async (ctx, next) => {
@@ -131,7 +170,7 @@ export default class Resource {
     }
   }
 
-  show (include) {
+  item (include) {
     let that = this
 
     return async (ctx, next) => {
@@ -151,44 +190,11 @@ export default class Resource {
     }
   }
 
-  index (options = {}) {
+  all (options = {}) {
     let that = this
 
     return async (ctx, next) => {
-      let query, sortedBy, pagination
-
-      if (!_.isEmpty(ctx.request.query)) {
-        const originalQuery = _.clone(ctx.request.query)
-
-        // parse ordering
-        if (_.has(originalQuery, 'sort')) {
-          sortedBy = originalQuery.sort
-            .split(',')
-            .map(f => (f.substr(0, 1) === '-' ? [f.substr(1), 'DESC'] : f))
-
-          debug('order by %o', sortedBy)
-          delete originalQuery.sort
-
-          query = _.merge(query, { order: sortedBy })
-        }
-
-        // parse pagination
-        if (_.has(originalQuery, 'limit')) {
-          const { limit, offset } = originalQuery
-          pagination = { limit: parseInt(limit, 10), offset: parseInt(offset, 10) || 0 }
-
-          query = _.merge(query, pagination)
-          delete originalQuery.limit
-          delete originalQuery.offset
-        }
-
-        // parse query string
-        let where = this.model.filter && _.isFunction(this.model.filter)
-          ? this.model.filter(originalQuery)
-          : originalQuery
-
-        if (!_.isEmpty(where)) query = _.merge(query, { where })
-      }
+      let { query, pagination, sortedBy } = this._buildQuery(ctx)
 
       debug('Read collection:', query)
 
@@ -222,7 +228,7 @@ export default class Resource {
   }
 
   readAll (options = {}) {
-    return this.index(options)
+    return this.all(options)
   }
 
   readOne (include) {

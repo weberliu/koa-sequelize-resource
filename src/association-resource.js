@@ -3,9 +3,9 @@ import inflection from 'inflection'
 
 import ContentRange from './content-range'
 import Resource from './resource'
-import debug from 'debug'
+import logger from 'debug'
 
-const log = debug('ksr:associations')
+const debug = logger('ksr:associations')
 
 export default class AssociationResource extends Resource {
   constructor (parent, association, parentOptions, childOptions) {
@@ -44,7 +44,7 @@ export default class AssociationResource extends Resource {
     }
   }
 
-  index (options = {}) {
+  all (options = {}) {
     const that = this
 
     return [
@@ -56,7 +56,7 @@ export default class AssociationResource extends Resource {
         const pagination = range.parse()
         const query = that._buildQuery(ctx)
 
-        log('Association query: ', query)
+        debug('Association query: ', query)
 
         ctx.state.instances = await ctx.state.parent[that.getMethod](_.merge({}, query, pagination))
 
@@ -66,7 +66,7 @@ export default class AssociationResource extends Resource {
             ? ctx.state.instances.length
             : await ctx.state.parent[countMethod](query)
 
-          log(countMethod, count)
+          debug(countMethod, count)
           ctx.set('content-range', range.format(ctx.state.instances.length, count))
         }
 

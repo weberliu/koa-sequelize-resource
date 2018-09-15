@@ -3,14 +3,12 @@ import Koa from 'koa'
 import BodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import request from 'supertest'
-import debug from 'debug'
-import assert from 'assert'
-import _ from 'lodash'
+import logger from 'debug'
 
-import models from '../models/'
+import { loadMockData } from '../models/'
 import router from '../mock/association-routers'
 
-const log = debug('ksr:test:crud')
+const debug = logger('ksr:test:crud')
 
 describe('crud', function () {
   let server
@@ -29,11 +27,10 @@ describe('crud', function () {
   })
 
   beforeEach(function (done) {
-    models.loadMockData().then(() => {
-      log('reset db done')
+    loadMockData().then(() => {
+      debug('reset db done')
       done()
     }).catch(done)
-
   })
 
   describe('resources', () => {

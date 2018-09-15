@@ -2,13 +2,11 @@ import _ from 'lodash'
 import Router from 'koa-router'
 import debug from 'debug'
 import Resource from './resource'
-// import require from 'really-need'
-// const Resource = require('./resource')
 
 const log = debug('ksr:router')
 const methods = {
-  index: 'get',
-  show: 'get',
+  all: 'get',
+  item: 'get',
   create: 'post',
   update: 'patch',
   destroy: 'delete'
@@ -54,7 +52,7 @@ export default function ResourceRouter (models) {
   }
 
   /**
-   * define create, index, show, update, destroy methods bind to resouce
+   * define create, all, item, update, destroy methods bind to resouce
    *
    * @param {string} path - url prefix
    * @return {Router} this router
@@ -73,7 +71,7 @@ export default function ResourceRouter (models) {
     if (!_.startsWith(path, '/')) path = '/' + path
 
     for (let k in methods) {
-      let url = (['show', 'update', 'destroy'].indexOf(k) > -1 && (!isAssociation || (isAssociation && resource.isMany)))
+      let url = (['item', 'update', 'destroy'].indexOf(k) > -1 && (!isAssociation || (isAssociation && resource.isMany)))
         ? `${path}/:id`
         : path
 
