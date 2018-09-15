@@ -78,7 +78,7 @@ export default function ResourceRouter (models) {
       let mw = resource[k]()
       let middlewares = (_.isArray(mw)) ? others.concat(mw) : others.concat([mw])
 
-      debug('curd routers: ', methods[k], url)
+      debug('curd routers: %s, %s', methods[k], url)
       router[methods[k]](url, ...middlewares)
     }
 

@@ -130,7 +130,7 @@ export default class Resource {
       debug(`Loaded model: ${that.model.name}`)
 
       await next()
-    };
+    }
   }
 
   create () {
@@ -217,6 +217,7 @@ export default class Resource {
 
       await next()
 
+      ctx.status = 200
       ctx.body = {
         items: ctx.state.instances,
         metadata: { pagination, sortedBy }

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import Sequelize from 'sequelize'
-import _ from 'lodash'
+// import _ from 'lodash'
 import debuger from 'debug'
 import config from '../config'
 import mock from '../mock/data'

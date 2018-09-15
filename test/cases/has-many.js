@@ -5,7 +5,7 @@ import convert from 'koa-convert'
 import request from 'supertest'
 import debuger from 'debug'
 import assert from 'assert'
-import _ from 'lodash'
+// import _ from 'lodash'
 
 import { loadMockData } from '../models/'
 import router from '../mock/routers'
@@ -112,11 +112,11 @@ describe('has many', function () {
       server
         .patch('/user/1/posts/1')
         .type('form')
-        .send({ thread: 'Post updated'})
+        .send({ thread: 'Post updated' })
         .expect(200)
         .end((err, res) => {
           if (err) throw done(err)
-          assert(res.body.userId == 1)
+          assert(res.body.userId === 1)
           done()
         })
     })

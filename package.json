@@ -9,7 +9,7 @@
   "scripts": {
     "travis": "export DEBUG=; mocha -u bdd --compilers js:babel-core/register",
     "test": "export NODE_ENV=test; istanbul cover ./node_modules/.bin/_mocha -- 'test/*.js' --require babel-core/register ",
-    "dev": "export NODE_ENV=test && export DEBUG= && mocha -u bdd --compilers js:babel-core/register -- test/test.js",
+    "dev": "export NODE_ENV=test && export DEBUG=ksr:router && mocha -u bdd --compilers js:babel-core/register -- test/test.js",
     "build": "babel src/ --out-dir lib/ --retain-lines"
   },
   "repository": {
