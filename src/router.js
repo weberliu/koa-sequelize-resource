@@ -1,20 +1,20 @@
 import _ from 'lodash'
 import Router from 'koa-router'
 import debug from 'debug'
-
 import Resource from './resource'
+// import require from 'really-need'
+// const Resource = require('./resource')
 
-const log = debug('koa-sequelize-resource:router')
+const log = debug('ksr:router')
 const methods = {
   index: 'get',
   show: 'get',
   create: 'post',
   update: 'patch',
-  destroy: 'delete',
+  destroy: 'delete'
 }
 
 export default function ResourceRouter (models) {
-  
   let resources = {}
   for (let k in models) {
     resources[k] = new Resource(models[k])
@@ -25,15 +25,14 @@ export default function ResourceRouter (models) {
   /**
    * define a router
    * @param  {string} url - url path
-   * 
+   *
    * @return {Router} this router
    */
-  router.define = function define(url) {
-    let others = [].slice.call(arguments, 1, -1) 
+  router.define = function define (url) {
+    let others = [].slice.call(arguments, 1, -1)
 
     const fn = _.last(arguments)
     const routers = fn(resources)
-
 
     for (let k in routers) {
       const method = methods[k]
@@ -56,11 +55,11 @@ export default function ResourceRouter (models) {
 
   /**
    * define create, index, show, update, destroy methods bind to resouce
-   * 
+   *
    * @param {string} path - url prefix
    * @return {Router} this router
    */
-  router.crud = function crud(path) {
+  router.crud = function crud (path) {
     let others = [].slice.call(arguments, 1, -1)
     const fn = _.last(arguments)
     const resource = fn(resources)
@@ -68,16 +67,16 @@ export default function ResourceRouter (models) {
     if (resource === undefined) {
       throw new Error('Resouce is undefined')
     }
-    
+
     const isAssociation = resource.constructor.name == 'AssociationResource'
-    
+
     if (!_.startsWith(path, '/')) path = '/' + path
 
     for (let k in methods) {
-      let url = (['show', 'update', 'destroy'].indexOf(k) > -1 && (!isAssociation || (isAssociation && resource.isMany))) 
-                  ? `${path}/:id`
-                  : path
-      
+      let url = (['show', 'update', 'destroy'].indexOf(k) > -1 && (!isAssociation || (isAssociation && resource.isMany)))
+        ? `${path}/:id`
+        : path
+
       let mw = resource[k]()
       let middlewares = (_.isArray(mw)) ? others.concat(mw) : others.concat([mw])
 

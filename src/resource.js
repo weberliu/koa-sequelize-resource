@@ -1,14 +1,10 @@
 import _ from 'lodash'
-import debug from 'debug'
-import Sequelize from 'sequelize'
+import logger from 'debug'
 
-import ContentRange from './content-range'
+const debug = logger('ksr:resources')
 
-const log = debug('koa-sequelize-resource:resources')
-
-export default class Resource
-{
-  constructor(model, options) {
+export default class Resource {
+  constructor (model, options) {
     this.model = model
 
     if (_.isString(options)) {
@@ -16,13 +12,13 @@ export default class Resource
     }
 
     this.options = {
-      idParam: 'id', 
-      idColumn: 'id', 
+      idParam: 'id',
+      idColumn: 'id',
       ...options
     }
   }
 
-  _errorHandler(err, ctx) {
+  _errorHandler (err, ctx) {
     const e = _.cloneDeep(err)
 
     if (e.sql) {
@@ -31,8 +27,8 @@ export default class Resource
       delete e.sql
 
       e.code = err.original.code
-      
-      switch(e.code) {
+
+      switch (e.code) {
         case 'ER_NO_DEFAULT_FOR_FIELD':
           e.statusCode = 400
           break
@@ -51,16 +47,16 @@ export default class Resource
   }
 
   // TODO: remove include
-  async _getEntity(ctx, include) {
+  async _getEntity (ctx, include) {
     // Fetch the entity
     return this.model.findOne({
-      where: { [this.options.idColumn] : ctx.params[this.options.idParam] },
+      where: { [this.options.idColumn]: ctx.params[this.options.idParam] },
       include: include
     })
   }
 
-  async _updatedHandler(res, ctx, next) {
-    log(`Updated ${this.model.name} ${ctx.state.instance}`);
+  async _updatedHandler (res, ctx, next) {
+    debug(`Updated ${this.model.name} ${ctx.state.instance}`)
 
     ctx.state.instance = res
     await next()
@@ -68,8 +64,8 @@ export default class Resource
     ctx.body = ctx.state.instance
   }
 
-  async _createdHandler(res, ctx, next) {
-    log(`Created ${this.model.name} ${res}`);
+  async _createdHandler (res, ctx, next) {
+    debug(`Created ${this.model.name} ${res}`)
 
     ctx.state.instance = res
     await next()
@@ -77,28 +73,28 @@ export default class Resource
     ctx.body = ctx.state.instance
   }
 
-  getEntity(include) {
+  getEntity (include) {
     let that = this
     return async (ctx, next) => {
       ctx.state.instance = await that._getEntity(ctx, include)
-      log(`Loaded ${that.model.name} ${ctx.state.instance}`)
+      debug(`Loaded ${that.model.name} ${ctx.state.instance}`)
 
-      await next();
+      await next()
     };
   }
 
-  create() {
-    let that = this;
+  create () {
+    let that = this
 
     return async (ctx, next) => {
       await that.model.create(ctx.request.body)
         .then(res => that._createdHandler(res, ctx, next))
-        .catch(err => that._errorHandler(err, ctx)) 
+        .catch(err => that._errorHandler(err, ctx))
     }
   }
 
-  update(options) {
-    let that = this;
+  update (options) {
+    let that = this
 
     return async (ctx, next) => {
       const instance = ctx.state.instance || await that._getEntity(ctx, [])
@@ -111,11 +107,11 @@ export default class Resource
       await instance.update(ctx.request.body, options)
         .then(res => that._updatedHandler(res, ctx, next))
         .catch(err => that._errorHandler(err, ctx))
-    };
+    }
   }
 
-  destroy() {
-    let that = this;
+  destroy () {
+    let that = this
 
     return async (ctx, next) => {
       const instance = ctx.state.instance || await that._getEntity(ctx, [])
@@ -127,16 +123,16 @@ export default class Resource
 
       await instance.destroy()
 
-      log(`Deleted ${that.model.name} ${instance}`)
+      debug(`Deleted ${that.model.name} ${instance}`)
 
       ctx.state.instance = instance
       await next()
       ctx.status = 204
-    };
+    }
   }
-  
-  show(include) {
-    let that = this;
+
+  show (include) {
+    let that = this
 
     return async (ctx, next) => {
       // ctx.state.instance = await that._getEntity(ctx, [{ all: true }])
@@ -150,92 +146,99 @@ export default class Resource
 
       await next()
 
-      ctx.status = 200;
-      ctx.body = ctx.state.instance;
+      ctx.status = 200
+      ctx.body = ctx.state.instance
     }
   }
 
-  _buildQuery(ctx) {
-    let query = {}
-
-    // parse query 
-    if (!_.isEmpty(ctx.request.query)) {
-      const originalQuery = _.clone(ctx.request.query)
-
-      if (_.has(originalQuery, 'orderby')) {
-        const order = originalQuery.orderby.substr(0, 1) == '-'
-                      ? originalQuery.orderby.substr(1) + ' DESC'
-                      : originalQuery.orderby
-
-        delete originalQuery.orderby
-
-        query = _.merge(query, { order: order })
-      }
-
-      let where = this.model.where && _.isFunction(this.model.where)
-                  ? this.model.where(originalQuery)
-                  : originalQuery
-
-      if (!_.isEmpty(where)) query = _.merge(query, { where: where })
-    }
-
-    return query
-  }
-
-  index(options = {}) {
-    let that = this;
+  index (options = {}) {
+    let that = this
 
     return async (ctx, next) => {
-      
-      let query = that._buildQuery(ctx)
-          
-      // parse pagination header
-      const range = new ContentRange(ctx.header['content-range'])
-      const pagination = range.parse()
-      
-      query = _.merge(query, pagination)
+      let query, sortedBy, pagination
 
-      log('Read collection:', query)
+      if (!_.isEmpty(ctx.request.query)) {
+        const originalQuery = _.clone(ctx.request.query)
+
+        // parse ordering
+        if (_.has(originalQuery, 'sort')) {
+          sortedBy = originalQuery.sort
+            .split(',')
+            .map(f => (f.substr(0, 1) === '-' ? [f.substr(1), 'DESC'] : f))
+
+          debug('order by %o', sortedBy)
+          delete originalQuery.sort
+
+          query = _.merge(query, { order: sortedBy })
+        }
+
+        // parse pagination
+        if (_.has(originalQuery, 'limit')) {
+          const { limit, offset } = originalQuery
+          pagination = { limit: parseInt(limit, 10), offset: parseInt(offset, 10) || 0 }
+
+          query = _.merge(query, pagination)
+          delete originalQuery.limit
+          delete originalQuery.offset
+        }
+
+        // parse query string
+        let where = this.model.filter && _.isFunction(this.model.filter)
+          ? this.model.filter(originalQuery)
+          : originalQuery
+
+        if (!_.isEmpty(where)) query = _.merge(query, { where })
+      }
+
+      debug('Read collection:', query)
 
       if (!_.isEmpty(pagination)) {
+        pagination = { pageCount: 0, totalCount: 0 }
+
         if (options.disableCount) {
           ctx.state.instances = await that.model.findAll(query)
-          ctx.set('content-range', range.format(ctx.state.instances.length))
         } else {
           const result = await that.model.findAndCount(query)
           ctx.state.instances = result.rows
-          ctx.set('content-range', range.format(result.rows.length, result.count))
+          pagination.totalCount = result.count
+          pagination.pageCount = Math.ceil(result.count / pagination.limit)
+          pagination.currentPage = Math.ceil(pagination.offset / pagination.limit) + 1
         }
+
+        let nextOffset = pagination.offset + pagination.limit
+        pagination.nextOffset = (pagination.totalCount > nextOffset) ? nextOffset : 0
+        pagination.prevOffset = _.max(0, pagination.limit - pagination.offset)
       } else {
         ctx.state.instances = await that.model.findAll(query)
       }
 
       await next()
 
-      ctx.status = (_.isEmpty(pagination)) ? 200 : 206
-      ctx.body = ctx.state.instances
+      ctx.body = {
+        items: ctx.state.instances,
+        metadata: { pagination, sortedBy }
+      }
     }
   }
 
-  readAll(options = {}) {
+  readAll (options = {}) {
     return this.index(options)
   }
 
-  readOne(include) {
+  readOne (include) {
     return this.readOne(include)
   }
 
-  relations(name, parentOptions, childOptions) {
-    const AssociationResource = require('./association-resource')
+  relations (name, parentOptions, childOptions) {
+
     const association = this.model.associations[name]
 
     if (association === undefined) {
       throw new Error(`Cannot found the associations named "${name}".`)
     }
 
-    const resource = new AssociationResource(this.model, association, parentOptions, childOptions)
-    
-    return resource
+    return new AssociationResource(this.model, association, parentOptions, childOptions)
   }
-
 }
+
+const AssociationResource = require('./association-resource')

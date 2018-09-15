@@ -9,7 +9,7 @@ import Router from '../../src/'
 import models from '../models/'
 
 const router = Router(models)
-const log = debug('koa-sequelize-resource:test:disable-count')
+const log = debug('ksr:test:disable-count')
 
 describe ('disable count', function () {
 
@@ -17,11 +17,11 @@ describe ('disable count', function () {
 
   before (function () {
     let app = new Koa()
-    
+
     router.define('user', (resources) => ({
       index: resources.User.index({disableCount: true})
     }))
-    
+
     app
       .use(async (ctx, next) => {
         await router.routes()(ctx, next)

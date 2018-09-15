@@ -10,15 +10,14 @@ import _ from 'lodash'
 import models from '../models/'
 import router from '../mock/association-routers'
 
-const log = debug('koa-sequelize-resource:test:crud')
+const log = debug('ksr:test:crud')
 
-describe ('crud', function () {
-
+describe('crud', function () {
   let server
 
-  before (function () {
+  before(function () {
     let app = new Koa()
-      , bodyparser = BodyParser()
+    let bodyparser = BodyParser()
 
     app
       .use(convert(bodyparser))
@@ -29,12 +28,11 @@ describe ('crud', function () {
     server = request(http.createServer(app.callback()))
   })
 
-  beforeEach (function (done) {
-
+  beforeEach(function (done) {
     models.loadMockData().then(() => {
       log('reset db done')
       done()
-    }).catch(done)  
+    }).catch(done)
 
   })
 

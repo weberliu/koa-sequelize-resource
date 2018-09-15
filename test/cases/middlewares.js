@@ -9,7 +9,7 @@ import Router from '../../src/'
 import models from '../models/'
 
 const router = Router(models)
-const log = debug('koa-sequelize-resource:test:middlewares')
+const log = debug('ksr:test:middlewares')
 
 describe ('middlewares', function () {
 
@@ -17,9 +17,9 @@ describe ('middlewares', function () {
 
   before (function () {
     let app = new Koa()
-    
+
     router
-      .define('user', 
+      .define('user',
         async (ctx, next) => {
           ctx.status = 401
         },
@@ -32,7 +32,7 @@ describe ('middlewares', function () {
         },
         resources => resources.User.relations('Posts')
       )
-    
+
     app
       .use(async (ctx, next) => {
         await router.routes()(ctx, next)

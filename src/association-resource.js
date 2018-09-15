@@ -1,29 +1,29 @@
 import _ from 'lodash'
-import debug from 'debug'
 import inflection from 'inflection'
 
 import ContentRange from './content-range'
 import Resource from './resource'
+import debug from 'debug'
 
-const log = debug('koa-sequelize-resource:associations')
+const log = debug('ksr:associations')
 
 export default class AssociationResource extends Resource {
-  constructor(parent, association, parentOptions, childOptions) {
-    super(association.target, childOptions)
+  constructor (parent, association, parentOptions, childOptions) {
+    super(association.target || null, childOptions)
 
     this.alias = association.as
     this.associationType = association.associationType
-    this.isMany = this.associationType == 'HasMany' || this.associationType == 'BelongsToMany'
+    this.isMany = this.associationType === 'HasMany' || this.associationType === 'BelongsToMany'
     this.parent = new Resource(parent, parentOptions)
 
     const capitalize = inflection.capitalize(this.alias)
 
     this.setMethod = 'set' + capitalize
-    this.getMethod = (this.isMany) 
-                      ? 'get' + inflection.pluralize(capitalize)
-                      : 'get' + capitalize
+    this.getMethod = (this.isMany)
+      ? 'get' + inflection.pluralize(capitalize)
+      : 'get' + capitalize
 
-    this.addMethod = 'add' + capitalize                
+    this.addMethod = 'add' + capitalize
   }
 
   _fetchParent () {
@@ -37,7 +37,7 @@ export default class AssociationResource extends Resource {
 
         if (that.isMany) {
           ctx.state.collection = ctx.state.parent[that.getMethod]
-        } 
+        }
 
         await next()
       }
@@ -46,7 +46,7 @@ export default class AssociationResource extends Resource {
 
   index (options = {}) {
     const that = this
-    
+
     return [
       that.parent.getEntity(),
       that._fetchParent(),
@@ -59,22 +59,22 @@ export default class AssociationResource extends Resource {
         log('Association query: ', query)
 
         ctx.state.instances = await ctx.state.parent[that.getMethod](_.merge({}, query, pagination))
-        
+
         if (!_.isEmpty(pagination)) {
           const countMethod = 'count' + inflection.capitalize(that.alias)
-          const count = options && options.disableCount 
-                        ? ctx.state.instances.length
-                        : await ctx.state.parent[countMethod](query)
-          
+          const count = options && options.disableCount
+            ? ctx.state.instances.length
+            : await ctx.state.parent[countMethod](query)
+
           log(countMethod, count)
           ctx.set('content-range', range.format(ctx.state.instances.length, count))
         }
-        
+
         await next()
-        
+
         ctx.status = (_.isEmpty(pagination)) ? 200 : 206
         ctx.body = ctx.state.instances
-      },
+      }
     ]
   }
 
@@ -85,12 +85,12 @@ export default class AssociationResource extends Resource {
 
       async (ctx, next) => {
         ctx.state.instance = ctx.state.parent[this.alias]
-        
+
         await next()
-        
+
         ctx.status = 200
         ctx.body = ctx.state.instance
-      },
+      }
     ]
   }
 
@@ -103,18 +103,18 @@ export default class AssociationResource extends Resource {
 
       async (ctx, next) => {
         const newInstance = that.model.build(ctx.request.body)
-        const promise = that.isMany 
-                        ? ctx.state.parent[that.addMethod](newInstance)
-                        : ctx.state.parent[that.setMethod](newInstance)
+        const promise = that.isMany
+          ? ctx.state.parent[that.addMethod](newInstance)
+          : ctx.state.parent[that.setMethod](newInstance)
 
         await promise
           .then(res => that._createdHandler(res, ctx, next))
           .catch(err => that._errorHandler(err, ctx))
-      },
+      }
     ]
   }
 
-  update() {
+  update () {
     const that = this
 
     const updateOne = async (ctx, next) => {
@@ -126,7 +126,7 @@ export default class AssociationResource extends Resource {
 
     let fn = [
       that.parent.getEntity({model: that.model, as: that.alias}),
-      that._fetchParent(),
+      that._fetchParent()
     ]
 
     if (that.isMany) {
@@ -139,20 +139,20 @@ export default class AssociationResource extends Resource {
     return fn
   }
 
-  destroy() {
+  destroy () {
     const that = this
 
     let fn = [
       this.parent.getEntity({model: this.model, as: this.alias}),
-      this._fetchParent(),
+      this._fetchParent()
     ]
 
     const destoryOne = async (ctx, next) => {
       ctx.state.instance = ctx.state.parent[this.alias]
-      
+
       await ctx.state.instance.destroy()
       await next()
-      
+
       ctx.status = 204
     }
 
@@ -166,7 +166,7 @@ export default class AssociationResource extends Resource {
     return fn
   }
 
-  _fetchOne() {
+  _fetchOne () {
     const that = this
 
     return async (ctx, next) => {
@@ -182,4 +182,3 @@ export default class AssociationResource extends Resource {
     }
   }
 }
-

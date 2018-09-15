@@ -10,7 +10,7 @@ import _ from 'lodash'
 import models from '../models/'
 import router from '../mock/routers'
 
-const log = debug('koa-sequelize-resource:test:hasone')
+const log = debug('ksr:test:hasone')
 
 describe ('has one', function () {
 
@@ -33,7 +33,7 @@ describe ('has one', function () {
     models.loadMockData().then(() => {
       log('reset db done')
       done()
-    }).catch(done)  
+    }).catch(done)
 
   })
 

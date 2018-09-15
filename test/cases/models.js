@@ -11,7 +11,7 @@ import _ from 'lodash'
 import models from '../models/'
 import router from '../mock/routers'
 
-const log = debug('koa-sequelize-resource:test:models')
+const log = debug('ksr:test:models')
 
 describe ('models', function () {
 
@@ -35,7 +35,7 @@ describe ('models', function () {
     models.loadMockData().then(() => {
       log('reset db done')
       done()
-    }).catch(done)  
+    }).catch(done)
 
   })
 
@@ -88,7 +88,7 @@ describe ('models', function () {
           done()
         })
     })
-    
+
     it('create duplicated name should be 409', done => {
       server
         .post('/user')
