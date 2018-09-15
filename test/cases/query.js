@@ -2,14 +2,14 @@
 import http from 'http'
 import Koa from 'koa'
 import request from 'supertest'
-import logger from 'debug'
+import debuger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
 import router from '../mock/routers'
 import { loadMockData } from '../models'
 
-const debug = logger('ksr:test:query')
+const debug = debuger('ksr:test:query')
 
 describe('query models', function () {
   let server
@@ -41,8 +41,10 @@ describe('query models', function () {
         .expect(200)
         .end((err, res) => {
           if (err) throw done(err)
-          let { items } = res.body
+          let { items, metadata } = res.body
           assert(items.length === 2)
+          assert(metadata.pagination.limit === 2)
+          debug(metadata)
           done()
         })
     })

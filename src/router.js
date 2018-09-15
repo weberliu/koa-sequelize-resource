@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import Router from 'koa-router'
-import debug from 'debug'
+import debuger from 'debug'
 import Resource from './resource'
 
-const log = debug('ksr:router')
+const debug = debuger('ksr:router')
 const methods = {
   all: 'get',
   item: 'get',
@@ -36,7 +36,7 @@ export default function ResourceRouter (models) {
       const method = methods[k]
 
       if (!method) {
-        throw new Error(`"k" is not a resource method.`)
+        throw new Error(`"${k}" is not a resource method.`)
       }
 
       let mw = routers[k]
@@ -44,7 +44,7 @@ export default function ResourceRouter (models) {
 
       if (!_.startsWith(url, '/')) url = '/' + url
 
-      log('define routers: ', method, url)
+      debug('define routers: ', method, url)
       router[method](url, ...middlewares)
     }
 
@@ -66,7 +66,7 @@ export default function ResourceRouter (models) {
       throw new Error('Resouce is undefined')
     }
 
-    const isAssociation = resource.constructor.name == 'AssociationResource'
+    const isAssociation = resource.constructor.name === 'AssociationResource'
 
     if (!_.startsWith(path, '/')) path = '/' + path
 
@@ -78,7 +78,7 @@ export default function ResourceRouter (models) {
       let mw = resource[k]()
       let middlewares = (_.isArray(mw)) ? others.concat(mw) : others.concat([mw])
 
-      log('curd routers: ', methods[k], url)
+      debug('curd routers: ', methods[k], url)
       router[methods[k]](url, ...middlewares)
     }
 

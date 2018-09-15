@@ -3,22 +3,21 @@ import Koa from 'koa'
 import BodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import request from 'supertest'
-import debug from 'debug'
+import debuger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
-import models from '../models/'
+import { loadMockData } from '../models/'
 import router from '../mock/routers'
 
-const log = debug('ksr:test:hasmany')
+const debug = debuger('ksr:test:hasmany')
 
-describe ('has many', function () {
-
+describe('has many', function () {
   let server
 
-  before (function () {
+  before(function () {
     let app = new Koa()
-      , bodyparser = BodyParser()
+    let bodyparser = BodyParser()
 
     app
       .use(convert(bodyparser))
@@ -28,17 +27,14 @@ describe ('has many', function () {
     server = request(http.createServer(app.callback()))
   })
 
-  beforeEach (function (done) {
-
-    models.loadMockData().then(() => {
-      log('reset db done')
+  beforeEach(function (done) {
+    loadMockData().then(() => {
+      debug('reset db done')
       done()
     }).catch(done)
-
   })
 
   describe('GET', () => {
-
     describe('get all posts', () => {
       it('shoud 200 and length is 3', done => {
         server
@@ -46,7 +42,7 @@ describe ('has many', function () {
           .expect(200)
           .end((err, res) => {
             if (err) throw new Error(err)
-            assert(res.body.length == 3)
+            assert(res.body.items.length === 3)
             done()
           })
       })
@@ -55,11 +51,12 @@ describe ('has many', function () {
     describe('all posts and order by id', () => {
       it('shoud 200', done => {
         server
-          .get('/user/1/posts?orderby=-id')
+          .get('/user/1/posts?sort=-id')
           .expect(200)
           .end((err, res) => {
             if (err) throw new Error(err)
-            assert(res.body[0].id > res.body[1].id)
+            const { items } = res.body
+            assert(items[0].id > items[1].id)
             done()
           })
       })
@@ -72,8 +69,10 @@ describe ('has many', function () {
           .expect(200)
           .end((err, res) => {
             if (err) throw new Error(err)
-            assert(res.body.length == 1)
-            assert(res.body[0].userId == 1)
+
+            let { items } = res.body
+            assert(items.length === 1)
+            assert(items[0].userId === 1)
             done()
           })
       })
@@ -82,10 +81,8 @@ describe ('has many', function () {
     describe('all posts by range', () => {
       it('shoud 200 and length is 2', done => {
         server
-          .get('/user/1/posts')
-          .set('content-range', 'items 2-3/2')
-          .expect('content-range', 'items 2-3/3')
-          .expect(206, done)
+          .get('/user/1/posts?limit=2')
+          .expect(200, done)
       })
     })
 

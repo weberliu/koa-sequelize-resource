@@ -1,7 +1,7 @@
 import http from 'http'
 import Koa from 'koa'
 import request from 'supertest'
-import debug from 'debug'
+import debuger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
@@ -9,7 +9,7 @@ import Router from '../src/'
 import models from './models/'
 
 const router = Router(models)
-const log = debug('ksr:test:middlewares')
+const debug = debuger('ksr:test:middlewares')
 
 describe('middlewares', function () {
   let server
@@ -23,7 +23,7 @@ describe('middlewares', function () {
           ctx.status = 401
         },
         (resources) => ({
-          index: resources.User.index()
+          all: resources.User.all()
         }))
       .crud('user/:uid/posts',
         async (ctx, next) => {

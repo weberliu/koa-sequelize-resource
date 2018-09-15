@@ -1,7 +1,7 @@
 import http from 'http'
 import Koa from 'koa'
 import request from 'supertest'
-import debug from 'debug'
+import debuger from 'debug'
 import assert from 'assert'
 import _ from 'lodash'
 
@@ -9,17 +9,20 @@ import Router from '../../src/'
 import models from '../models/'
 
 const router = Router(models)
-const log = debug('ksr:test:disable-count')
+const debug = debuger('ksr:test:disable-count')
 
-describe ('disable count', function () {
-
+describe('disable count', function () {
   let server
 
-  before (function () {
+  before(function () {
     let app = new Koa()
 
     router.define('user', (resources) => ({
-      index: resources.User.index({disableCount: true})
+      all: resources.User.all({disableCount: true})
+    }))
+
+    router.define('user/:uid/posts', (resources) => ({
+      all: resources.User.relations('Posts', 'uid').all({disableCount: true}),
     }))
 
     app
@@ -30,13 +33,34 @@ describe ('disable count', function () {
     server = request(http.createServer(app.callback()))
   })
 
-  describe('RANGE', () => {
+  describe('RESOURCE', () => {
     it('should be 200 and body length equal 2', done => {
       server
-        .get('/user')
-        .set('content-range', 'items 1-2/2')
-        .expect('content-range', 'items 1-2/2')
-        .expect(206, done)
+        .get('/user?limit=2')
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw new Error(err)
+          let { items, metadata } = res.body
+          assert(items.length === 2)
+          assert(metadata.pagination.totalCount === 0)
+          done()
+        })
+    })
+  })
+
+  describe('ASSOCIATION RESOURCE', () => {
+    it('should be 200 and body length equal 2', done => {
+      server
+        .get('/user/1/posts?limit=2')
+        .expect(200)
+        .end((err, res) => {
+          if (err) throw new Error(err)
+          let { items, metadata } = res.body
+          assert(items.length === 2)
+          assert(metadata.pagination.limit === 2)
+          assert(metadata.pagination.totalCount === 0)
+          done()
+        })
     })
   })
 })

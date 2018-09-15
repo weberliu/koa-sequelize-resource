@@ -2,14 +2,14 @@ import fs from 'fs'
 import path from 'path'
 import Sequelize from 'sequelize'
 import _ from 'lodash'
-import logger from 'debug'
+import debuger from 'debug'
 import config from '../config'
 import mock from '../mock/data'
 
 const basename = path.basename(module.filename)
 const models = {}
 
-const debug = logger('ksr:test:database')
+const debug = debuger('ksr:test:database')
 
 const sequelize = new Sequelize(`mysql://${config}/koa_sequelize_resource#UTF8`, {
   logging: false,

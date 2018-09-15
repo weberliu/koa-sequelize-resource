@@ -1,11 +1,10 @@
 import _ from 'lodash'
 import inflection from 'inflection'
 
-import ContentRange from './content-range'
 import Resource from './resource'
-import logger from 'debug'
+import debuger from 'debug'
 
-const debug = logger('ksr:associations')
+const debug = debuger('ksr:associations')
 
 export default class AssociationResource extends Resource {
   constructor (parent, association, parentOptions, childOptions) {
@@ -52,13 +51,11 @@ export default class AssociationResource extends Resource {
       that._fetchParent(),
 
       async (ctx, next) => {
-        const range = new ContentRange(ctx.header['content-range'])
-        const pagination = range.parse()
-        const query = that._buildQuery(ctx)
+        let { query, sortedBy, pagination } = that._buildQuery(ctx)
 
         debug('Association query: ', query)
 
-        ctx.state.instances = await ctx.state.parent[that.getMethod](_.merge({}, query, pagination))
+        ctx.state.instances = await ctx.state.parent[that.getMethod](query)
 
         if (!_.isEmpty(pagination)) {
           const countMethod = 'count' + inflection.capitalize(that.alias)
@@ -66,19 +63,20 @@ export default class AssociationResource extends Resource {
             ? ctx.state.instances.length
             : await ctx.state.parent[countMethod](query)
 
-          debug(countMethod, count)
-          ctx.set('content-range', range.format(ctx.state.instances.length, count))
+          pagination = this._buildPagination(options.disableCount, count, pagination)
         }
 
         await next()
 
-        ctx.status = (_.isEmpty(pagination)) ? 200 : 206
-        ctx.body = ctx.state.instances
+        ctx.body = {
+          items: ctx.state.instances,
+          metadata: { pagination, sortedBy }
+        }
       }
     ]
   }
 
-  show () {
+  item () {
     return [
       this.parent.getEntity({model: this.model, as: this.alias}),
       this._fetchParent(),

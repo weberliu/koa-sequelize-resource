@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import logger from 'debug'
+import debuger from 'debug'
 
-const debug = logger('ksr:resources')
+const debug = debuger('ksr:resources')
 
 export default class Resource {
   constructor (model, options) {
@@ -19,16 +19,11 @@ export default class Resource {
   }
 
   _errorHandler (err, ctx) {
-    const e = _.cloneDeep(err)
+    const e = { statusCode: 500 }
 
-    if (e.sql) {
-      delete e.parent
-      delete e.original
-      delete e.sql
-
-      e.code = err.original.code
-
-      switch (e.code) {
+    if (err.sql) {
+      const { code, errno, sqlMessage } = err.original
+      switch (code) {
         case 'ER_NO_DEFAULT_FOR_FIELD':
           e.statusCode = 400
           break
@@ -38,8 +33,8 @@ export default class Resource {
         default:
           e.statusCode = 500
       }
-    } else {
-      e.statusCode = 500
+      e.errorno = errno
+      e.errmessage = sqlMessage
     }
 
     ctx.status = e.statusCode
@@ -112,11 +107,27 @@ export default class Resource {
     return { query, sortedBy, pagination }
   }
 
+  _buildPagination (disableCount, count, pagination) {
+    pagination = _.merge(pagination, { pageCount: 0, totalCount: 0 })
+
+    if (!disableCount) {
+      pagination.totalCount = count
+      pagination.pageCount = Math.ceil(count / pagination.limit)
+      pagination.currentPage = Math.ceil(pagination.offset / pagination.limit) + 1
+    }
+
+    let nextOffset = pagination.offset + pagination.limit
+    pagination.nextOffset = (pagination.totalCount > nextOffset) ? nextOffset : 0
+    pagination.prevOffset = _.max([0, pagination.limit - pagination.offset])
+
+    return pagination
+  }
+
   getEntity (include) {
     let that = this
     return async (ctx, next) => {
       ctx.state.instance = await that._getEntity(ctx, include)
-      debug(`Loaded ${that.model.name} ${ctx.state.instance}`)
+      debug(`Loaded model: ${that.model.name}`)
 
       await next()
     };
@@ -197,25 +208,11 @@ export default class Resource {
       let { query, pagination, sortedBy } = this._buildQuery(ctx)
 
       debug('Read collection:', query)
+      ctx.state.instances = await that.model.findAll(query)
 
       if (!_.isEmpty(pagination)) {
-        pagination = { pageCount: 0, totalCount: 0 }
-
-        if (options.disableCount) {
-          ctx.state.instances = await that.model.findAll(query)
-        } else {
-          const result = await that.model.findAndCount(query)
-          ctx.state.instances = result.rows
-          pagination.totalCount = result.count
-          pagination.pageCount = Math.ceil(result.count / pagination.limit)
-          pagination.currentPage = Math.ceil(pagination.offset / pagination.limit) + 1
-        }
-
-        let nextOffset = pagination.offset + pagination.limit
-        pagination.nextOffset = (pagination.totalCount > nextOffset) ? nextOffset : 0
-        pagination.prevOffset = _.max(0, pagination.limit - pagination.offset)
-      } else {
-        ctx.state.instances = await that.model.findAll(query)
+        let count = await that.model.count(query)
+        pagination = this._buildPagination(options.disableCount, count, pagination)
       }
 
       await next()

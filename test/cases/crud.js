@@ -3,12 +3,13 @@ import Koa from 'koa'
 import BodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import request from 'supertest'
-import logger from 'debug'
+import assert from 'assert'
+import debuger from 'debug'
 
 import { loadMockData } from '../models/'
 import router from '../mock/association-routers'
 
-const debug = logger('ksr:test:crud')
+const debug = debuger('ksr:test:crud')
 
 describe('crud', function () {
   let server
@@ -47,7 +48,7 @@ describe('crud', function () {
         server
           .post('/user')
           .type('form')
-          .send({ name: 'Bill', email: 'bill@who.com', password: '123456'})
+          .send({ name: 'Bill', email: 'bill@who.com', password: '123456' })
           .expect(201, done)
       })
     })
@@ -57,7 +58,7 @@ describe('crud', function () {
         server
           .patch('/user/1')
           .type('form')
-          .send({ name: 'Bill', email: 'bill@who.com', password: '123456'})
+          .send({ name: 'Bill', email: 'bill@who.com', password: '123456' })
           .expect(200, done)
       })
     })
@@ -76,7 +77,13 @@ describe('crud', function () {
       it('should be 200', done => {
         server
           .get('/user/1/posts')
-          .expect(200, done)
+          .expect(200)
+          .end((err, res) => {
+            if (err) throw done(err)
+            let { items } = res.body
+            assert(items.length === 3)
+            done()
+          })
       })
     })
 
@@ -85,7 +92,7 @@ describe('crud', function () {
         server
           .post('/user/1/posts')
           .type('form')
-          .send({ thread: 'New post', content: 'new content'})
+          .send({ thread: 'New post', content: 'new content' })
           .expect(201, done)
       })
     })
@@ -95,7 +102,7 @@ describe('crud', function () {
         server
           .patch('/user/1/posts/1')
           .type('form')
-          .send({ thread: 'New post', content: 'new content'})
+          .send({ thread: 'New post', content: 'new content' })
           .expect(200, done)
       })
     })
