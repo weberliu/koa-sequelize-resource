@@ -73,6 +73,14 @@ describe('operations', function () {
           .send({ name: 'Bill', email: 'bill@who.com', password: '123456' })
           .expect(200, done)
       })
+
+      it('update should be 204', done => {
+        server
+          .patch('/user/100')
+          .type('form')
+          .send({ name: 'Bill', email: 'bill@who.com', password: '123456' })
+          .expect(204, done)
+      })
     })
 
     describe('DELETE', () => {
