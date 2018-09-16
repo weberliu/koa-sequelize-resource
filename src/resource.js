@@ -185,7 +185,6 @@ export default class Resource {
     let that = this
 
     return async (ctx, next) => {
-      // ctx.state.instance = await that._getEntity(ctx, [{ all: true }])
       ctx.state.instance = await that._getEntity(ctx, include)
       await next()
 

@@ -42,6 +42,14 @@ describe('operations', function () {
           .expect(200, done)
       })
 
+      it('get item should be 200', done => {
+        server
+          .get('/user/1')
+          .set('Accept', 'application/json')
+          .expect('content-type', /json/)
+          .expect(200, done)
+      })
+
       it('should be 204', done => {
         server.get('/user/10').expect(204, done)
       })
