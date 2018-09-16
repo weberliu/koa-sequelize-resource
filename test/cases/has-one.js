@@ -43,7 +43,6 @@ describe('has one', function () {
         .expect(200)
         .end((err, res) => {
           if (err) throw new Error(err)
-          debug(res.headers)
           assert(_.isObject(res.body))
           done()
         })
