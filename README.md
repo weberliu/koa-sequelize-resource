@@ -6,7 +6,7 @@ RESTful API based on Sequelize and support ES2015.
 ## Installation
 
 ```
-npm install koa-sequelize-resource -S
+yarn add koa-sequelize-resource -S
 ```
 
 ## Usage
@@ -22,16 +22,16 @@ const router = Router(models)
 router
   .crud('/user', (resources) => resources.User)
   .crud('user/:uid/posts', (resources) => resources.User.relations('Posts', 'uid'))
-  // or 
-  .define('user/:uid/posts', (resources) => ({
-    index: resources.User.relations('Posts', 'uid').index(),
+  // or
+  .define('/user/:uid/posts', (resources) => ({
+    all: resources.User.relations('Posts', 'uid').all(),
     create: resources.User.relations('Posts', 'uid').create(),
   }))
-  .define('user/:uid/posts/:id', (resources) => ({
+  .define('/user/:uid/posts/:id', (resources) => ({
     update: resources.User.relations('Posts', 'uid').update(),
     destroy: resources.User.relations('Posts', 'uid').destroy(),
   }))
-    
+
 app
   .use(async (ctx, next) => {
     await router.routes()(ctx, next)
@@ -46,14 +46,26 @@ app.listen(3000)
 
 ### Pagination
 
-* Request head:
+* Request:
 ```
-content-range: 'items 10-30/20'
+&offset=10&limit=10
 ```
 * Response:
 ```
-HTTP/1.1 206 Partial Content
-content-range: 'items 10-25/20'
+{
+  metadata: {
+    pagination: {
+      offset: 10,
+      limit: 10,
+      currentPage: 1,
+      pageCount: 3,
+      totalCount: 30,
+      prevOffset: 0,
+      nextOffset: 20
+    }
+  },
+  items: []
+}
 ```
 * Sometimes, we do not wish calculate the records count:
 ```
@@ -63,10 +75,10 @@ router.define('orders', resources => resources.orders.index({ disableCount: true
 
 ### Order by
 
-* Request: 
+* Request:
 ```
-/users?orderby=-username
-/users?orderby=email
+/users?sort=-username
+/users?sort=email
 ```
 * Response:
 ```
@@ -81,7 +93,7 @@ router.define('orders', resources => resources.orders.index({ disableCount: true
     { username: 'Bill', email: 'bill@who.com' },
 ]
 ```
-## Middlewares 
+## Middlewares
 
 ```
 router
@@ -97,5 +109,5 @@ router
 
 
 ```
-npm test
+yarn test
 ```
