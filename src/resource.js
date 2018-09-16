@@ -187,16 +187,9 @@ export default class Resource {
     return async (ctx, next) => {
       // ctx.state.instance = await that._getEntity(ctx, [{ all: true }])
       ctx.state.instance = await that._getEntity(ctx, include)
-
-      if (ctx.state.instance === null) {
-        ctx.status = 204
-
-        return
-      }
-
       await next()
 
-      ctx.status = 200
+      ctx.status = (ctx.state.instance === null) ? 204 : 200
       ctx.body = ctx.state.instance
     }
   }

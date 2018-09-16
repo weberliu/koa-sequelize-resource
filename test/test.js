@@ -1,5 +1,4 @@
 require('./cases/crud')
-// require('./cases/operations')
 // require('./cases/disable-count')
 // require('./cases/has-many')
 // require('./cases/has-one')
